@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wordle Helper</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:46rem;margin:2rem auto;padding:0 1rem}
+.row{display:flex;gap:.5rem;margin:.4rem 0;align-items:center;flex-wrap:wrap}
+.pos input.p{width:2.5rem;text-align:center;font-size:1.4rem;text-transform:lowercase}
+.pos div{display:flex;flex-direction:column;gap:.2rem;align-items:center}
+.pos input.n{width:4rem}
+.words span{display:inline-block;margin:.15rem .3rem;font-family:monospace}
+.err{color:#b00}
+</style></head><body>
+<h1>Wordle Helper</h1>
+<form method="get">
+ <div class="row pos">
+  {% for pos in positions %}
+  <div><input class="p" name="p{{ pos.i }}" maxlength="1" value="{{ pos.p }}" aria-label="letter {{ pos.i }}" placeholder="_"></div>
+  {% endfor %}
+ </div>
+ <p style="margin:0;font-size:.85rem">Green letters above. Letters known <em>not</em> in each position:</p>
+ <div class="row pos">
+  {% for pos in positions %}
+  <div><input class="n" name="not{{ pos.i }}" value="{{ pos.n }}" aria-label="not letter {{ pos.i }}"></div>
+  {% endfor %}
+ </div>
+ <div class="row"><label>Include (yellow) <input name="include" value="{{ form.include }}"></label>
+  <label>Exclude (gray) <input name="exclude" value="{{ form.exclude }}"></label></div>
+ <div class="row"><label>Regex override <input name="regex" value="{{ form.regex }}"></label></div>
+ <div class="row">
+  <label><input type="checkbox" name="no_repeats" value="1" {% if form.no_repeats %}checked{% endif %}> no repeated letters</label>
+  <label><input type="radio" name="dict" value="ww" {% if form.dict != 'all' %}checked{% endif %}> Wordle answers</label>
+  <label><input type="radio" name="dict" value="all" {% if form.dict == 'all' %}checked{% endif %}> full dictionary</label>
+ </div>
+ <button>Find words</button> <a href="/">reset</a>
+</form>
+{% if error %}<p class="err">Error: {{ error }}</p>{% endif %}
+{% if result %}
+<h2>Found {{ result.count }} candidate word{{ result.count|pluralize }}</h2>
+{% if result.best %}<p><strong>Best guesses:</strong>
+ {% for w, s in result.best %}{{ w }} ({{ s }}){% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+{% if result.top_letters %}<p><strong>Top letters:</strong>
+ {% for l, c in result.top_letters %}{{ l }}:{{ c }} {% endfor %}</p>{% endif %}
+<div class="words">{% for w in result.words %}<span>{{ w }}</span>{% endfor %}</div>
+{% if result.truncated %}<p><em>List truncated; refine your filters.</em></p>{% endif %}
+{% endif %}
+</body></html>
