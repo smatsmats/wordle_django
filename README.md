@@ -14,12 +14,20 @@ Health: `GET /healthz`.
     docker build -t wordle .
     docker run -p 8080:8080 -e DJANGO_SECRET_KEY=change-me wordle
 
-## Google Cloud Run
-    gcloud run deploy wordle --source . --region us-central1 --allow-unauthenticated \
-      --set-env-vars DJANGO_SECRET_KEY=$(openssl rand -hex 32)
+## Google Kubernetes Engine (GKE)
+    PROJECT=my-project REGION=us-central1
+    gcloud artifacts repositories create wordle --repository-format=docker --location=$REGION
+    gcloud builds submit --tag $REGION-docker.pkg.dev/$PROJECT/wordle/wordle:latest .
+    gcloud container clusters create-auto wordle --region=$REGION
+    gcloud container clusters get-credentials wordle --region=$REGION
 
-(Or build with Cloud Build / Artifact Registry and `gcloud run deploy --image`.
-Use Secret Manager for the key in real deployments.)
+    kubectl create secret generic wordle-secret --from-literal=secret-key=$(openssl rand -hex 32)
+    sed "s#REGION-docker.pkg.dev/PROJECT_ID#$REGION-docker.pkg.dev/$PROJECT#" k8s/deployment.yaml | kubectl apply -f -
+    kubectl apply -f k8s/service.yaml
+    kubectl get service wordle   # wait for EXTERNAL-IP, then browse to http://<ip>/
+
+Set `DJANGO_ALLOWED_HOSTS` in `k8s/deployment.yaml` to your IP/domain instead of `*`.
+The image also runs unchanged on Cloud Run (`gcloud run deploy --source .`).
 
 ## Env vars
 `DJANGO_SECRET_KEY` (required unless `DJANGO_DEBUG=1`), `DJANGO_ALLOWED_HOSTS`,

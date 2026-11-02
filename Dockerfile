@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-slim AS wordle-pup
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
@@ -12,6 +12,6 @@ RUN DJANGO_SECRET_KEY=build python manage.py collectstatic --noinput
 RUN useradd --system --no-create-home app
 USER app
 
-# Cloud Run injects $PORT (defaults to 8080)
+# GKE/Cloud Run set $PORT (defaults to 8080)
 ENV PORT=8080
 CMD exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT} --workers 2 --threads 4 --timeout 0

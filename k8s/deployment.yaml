@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordle
+  labels: {app: wordle}
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: wordle}
+  template:
+    metadata:
+      labels: {app: wordle}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: wordle
+          # replace via: sed or `kubectl set image deployment/wordle wordle=<image>`
+          image: REGION-docker.pkg.dev/PROJECT_ID/wordle/wordle:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef: {name: wordle-secret, key: secret-key}
+            # set to your domain / external IP once known (comma separated)
+            - name: DJANGO_ALLOWED_HOSTS
+              value: "*"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {memory: 256Mi}
+          # Host header must be allowed by Django (probes otherwise use the pod IP)
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+              httpHeaders: [{name: Host, value: localhost}]
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+              httpHeaders: [{name: Host, value: localhost}]
+            initialDelaySeconds: 10
