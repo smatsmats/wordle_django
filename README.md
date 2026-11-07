@@ -15,7 +15,7 @@ Health: `GET /healthz`.
     docker run -p 8080:8080 -e DJANGO_SECRET_KEY=change-me wordle
 
 ## Google Kubernetes Engine (GKE)
-    PROJECT=my-project REGION=us-central1
+    PROJECT=wordle-pup REGION=us-west1
     gcloud artifacts repositories create wordle --repository-format=docker --location=$REGION
     gcloud builds submit --tag $REGION-docker.pkg.dev/$PROJECT/wordle/wordle:latest .
     gcloud container clusters create-auto wordle --region=$REGION
