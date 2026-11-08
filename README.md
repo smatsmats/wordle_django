@@ -27,7 +27,27 @@ Health: `GET /healthz`.
     kubectl get service wordle   # wait for EXTERNAL-IP, then browse to http://<ip>/
 
 Set `DJANGO_ALLOWED_HOSTS` in `k8s/deployment.yaml` to your IP/domain instead of `*`.
-The image also runs unchanged on Cloud Run (`gcloud run deploy --source .`).
+
+## Google Cloud Run
+    PROJECT=wordle-pup REGION=us-west1
+    gcloud config set project $PROJECT
+    gcloud services enable run.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com secretmanager.googleapis.com
+
+    # Store the Django secret key in Secret Manager
+    openssl rand -hex 32 | gcloud secrets create wordle-secret-key --data-file=-
+    gcloud secrets add-iam-policy-binding wordle-secret-key \
+      --member=serviceAccount:$(gcloud projects describe $PROJECT --format='value(projectNumber)')-compute@developer.gserviceaccount.com \
+      --role=roles/secretmanager.secretAccessor
+
+    # Build from the Dockerfile and deploy (Cloud Run sets $PORT; the image honors it)
+    gcloud run deploy wordle --source . --region=$REGION --allow-unauthenticated \
+      --set-secrets=DJANGO_SECRET_KEY=wordle-secret-key:latest
+
+    curl $(gcloud run services describe wordle --region=$REGION --format='value(status.url)')/healthz
+
+`*.run.app` hosts are already allowed. For a custom domain, add
+`--set-env-vars=DJANGO_ALLOWED_HOSTS=example.com,DJANGO_CSRF_TRUSTED_ORIGINS=https://example.com`
+(use `^@^` delimiter syntax if values contain commas). Redeploy by re-running `gcloud run deploy`.
 
 ## Env vars
 `DJANGO_SECRET_KEY` (required unless `DJANGO_DEBUG=1`), `DJANGO_ALLOWED_HOSTS`,

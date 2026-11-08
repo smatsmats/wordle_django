@@ -9,8 +9,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 RUN DJANGO_SECRET_KEY=build python manage.py collectstatic --noinput
 
-RUN useradd --system --no-create-home app
-USER app
+RUN useradd --system --no-create-home --uid 10001 app
+USER 10001
 
 # GKE/Cloud Run set $PORT (defaults to 8080)
 ENV PORT=8080

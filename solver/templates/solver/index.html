@@ -13,12 +13,13 @@ body{font-family:system-ui,sans-serif;max-width:46rem;margin:2rem auto;padding:0
 </style></head><body>
 <h1>Wordle Helper</h1>
 <form method="get">
+ <p style="margin:0;font-size:.85rem">Green Letters</p>
  <div class="row pos">
   {% for pos in positions %}
   <div><input class="p" name="p{{ pos.i }}" maxlength="1" value="{{ pos.p }}" aria-label="letter {{ pos.i }}" placeholder="_"></div>
   {% endfor %}
  </div>
- <p style="margin:0;font-size:.85rem">Green letters above. Letters known <em>not</em> in each position:</p>
+ <p style="margin:0;font-size:.85rem">Yellow Letters</p>
  <div class="row pos">
   {% for pos in positions %}
   <div><input class="n" name="not{{ pos.i }}" value="{{ pos.n }}" aria-label="not letter {{ pos.i }}"></div>
