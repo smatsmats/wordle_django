@@ -49,6 +49,20 @@ Set `DJANGO_ALLOWED_HOSTS` in `k8s/deployment.yaml` to your IP/domain instead of
 `--set-env-vars=DJANGO_ALLOWED_HOSTS=example.com,DJANGO_CSRF_TRUSTED_ORIGINS=https://example.com`
 (use `^@^` delimiter syntax if values contain commas). Redeploy by re-running `gcloud run deploy`.
 
+### Stop / tear down
+Cloud Run scales to zero when idle, so an idle service costs nothing. To stop serving traffic:
+
+    # Block public access (service stays deployed; requests get 403)
+    gcloud run services remove-iam-policy-binding wordle --region=$REGION --member=allUsers --role=roles/run.invoker
+
+    # Or delete the service entirely
+    gcloud run services delete wordle --region=$REGION
+
+Optional cleanup of remaining resources:
+
+    gcloud secrets delete wordle-secret-key
+    gcloud artifacts repositories delete cloud-run-source-deploy --location=$REGION   # repo created by --source deploys
+
 ## Env vars
 `DJANGO_SECRET_KEY` (required unless `DJANGO_DEBUG=1`), `DJANGO_ALLOWED_HOSTS`,
 `DJANGO_CSRF_TRUSTED_ORIGINS` (comma separated), `PORT`.
