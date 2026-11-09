@@ -16,6 +16,7 @@ Health: `GET /healthz`.
 
 ## Google Kubernetes Engine (GKE)
     PROJECT=wordle-pup REGION=us-west1
+    gcloud config set run/region $REGION
     gcloud artifacts repositories create wordle --repository-format=docker --location=$REGION
     gcloud builds submit --tag $REGION-docker.pkg.dev/$PROJECT/wordle/wordle:latest .
     gcloud container clusters create-auto wordle --region=$REGION
