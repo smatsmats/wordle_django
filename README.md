@@ -59,6 +59,10 @@ Cloud Run scales to zero when idle, so an idle service costs nothing. To stop se
     # Or delete the service entirely
     gcloud run services delete wordle --region=$REGION
 
+To restore public access after blocking it:
+
+    gcloud run services add-iam-policy-binding wordle --region=$REGION --member=allUsers --role=roles/run.invoker
+
 Optional cleanup of remaining resources:
 
     gcloud secrets delete wordle-secret-key
